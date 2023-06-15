@@ -79,6 +79,7 @@ class SessionChannel < ApplicationCable::Channel
     previous_working_duration = session.working_duration || 0.0
     new_working_duration = calculate_duration(previous_working_duration, session.working_time, working_time)
     session.update(working_time: working_time, working_duration: new_working_duration)
+    activity_operations(data['mouse_clicks'].to_i, data['keystrokes'].to_i, session)
   end
 
   def update_break_timings(data, session)
@@ -87,6 +88,7 @@ class SessionChannel < ApplicationCable::Channel
     previous_break_duration = session.break_duration || 0.0
     new_break_duration = calculate_duration(previous_break_duration, session.break_time, break_time)
     session.update(break_time: break_time, break_duration: new_break_duration)
+    make_activity_unavailable(session)
   end
 
   def update_meeting_timings(data, session)
@@ -95,9 +97,29 @@ class SessionChannel < ApplicationCable::Channel
     previous_meeting_duration = session.meeting_duration || 0.0
     new_meeting_duration = calculate_duration(previous_meeting_duration, session.meeting_time, meeting_time)
     session.update(meeting_time: meeting_time, meeting_duration: new_meeting_duration)
+    make_activity_unavailable(session)
   end
 
   def calculate_total_time(session)
     session.working_duration + session.break_duration + session.meeting_duration
+  end
+
+  def activity_operations(clicks, keystrokes, session)
+    activity = session.activities.available.first
+    
+    if activity.nil?
+      session.activities.create(start_duration: Time.current, mouse_click: clicks, key_stroke: keystrokes)
+    else
+      activity.update(mouse_click: activity.mouse_click + clicks)
+      activity.update(key_stroke: activity.key_stroke + keystrokes)
+    end
+  end
+
+  def make_activity_unavailable(session)
+    activity = session.activities.available.first
+
+    if activity.present?
+      activity.update(end_duration: Time.current)
+    end
   end
 end
