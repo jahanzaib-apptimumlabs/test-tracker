@@ -16,6 +16,7 @@ class SessionChannel < ApplicationCable::Channel
     case data['time_type']
     when 'work'
       update_work_timings(data, session)
+      save_screenshot(session, data['image_url']) if data['image_url']&.present?
     when 'break'
       update_break_timings(data, session)
     when 'meeting'
@@ -120,6 +121,14 @@ class SessionChannel < ApplicationCable::Channel
 
     if activity.present?
       activity.update(end_duration: Time.current)
+    end
+  end
+
+  def save_screenshot(session, image_url)
+    image_record = session.image_records.new(image_url: image_url, user_id: session.user_id)
+
+    if !image_record.save
+      raise StandardError, "Failed to save screenshot"
     end
   end
 end
