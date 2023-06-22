@@ -125,7 +125,7 @@ class SessionChannel < ApplicationCable::Channel
   end
 
   def save_screenshot(session, image_url)
-    image_record = session.image_records.new(image_url: image_url, user_id: session.user_id)
+    image_record = session.image_records.new(image_url: image_url)
 
     if !image_record.save
       raise StandardError, "Failed to save screenshot"

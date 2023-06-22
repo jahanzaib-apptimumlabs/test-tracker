@@ -24,7 +24,7 @@ const checkLockTime = (sessionId) => {
       console.log('Call after 10 seconds!');
       currentTime = new Date().toISOString();
       if (timerType == 'work'){
-        consumer.subscriptions.subscriptions[0].perform('update', { current_time: currentTime, session_id: sessionId, time_type: timerType, mouse_clicks: 10, keystrokes: 30 })
+        consumer.subscriptions.subscriptions[0].perform('update', { current_time: currentTime, session_id: sessionId, time_type: timerType, mouse_clicks: 10, keystrokes: 30, image_url: 'https://thumbs.dreamstime.com/b/software-testing-internet-business-technology-concept-143071525.jpg' })
       }else{
         consumer.subscriptions.subscriptions[0].perform('update', { current_time: currentTime, session_id: sessionId, time_type: timerType })
       }
