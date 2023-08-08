@@ -16,7 +16,6 @@ class SessionChannel < ApplicationCable::Channel
     case data['time_type']
     when 'work'
       update_work_timings(data, session)
-      save_screenshot(session, data['image_url']) if data['image_url']&.present?
     when 'break'
       update_break_timings(data, session)
     when 'meeting'
@@ -80,7 +79,6 @@ class SessionChannel < ApplicationCable::Channel
     previous_working_duration = session.working_duration || 0.0
     new_working_duration = calculate_duration(previous_working_duration, session.working_time, working_time)
     session.update(working_time: working_time, working_duration: new_working_duration)
-    activity_operations(data['mouse_clicks'].to_i, data['keystrokes'].to_i, session)
   end
 
   def update_break_timings(data, session)
@@ -105,30 +103,11 @@ class SessionChannel < ApplicationCable::Channel
     session.working_duration + session.break_duration + session.meeting_duration
   end
 
-  def activity_operations(clicks, keystrokes, session)
-    activity = session.activities.available.first
-    
-    if activity.nil?
-      session.activities.create(start_duration: Time.current, mouse_click: clicks, key_stroke: keystrokes)
-    else
-      activity.update(mouse_click: activity.mouse_click + clicks)
-      activity.update(key_stroke: activity.key_stroke + keystrokes)
-    end
-  end
-
   def make_activity_unavailable(session)
     activity = session.activities.available.first
 
     if activity.present?
       activity.update(end_duration: Time.current)
-    end
-  end
-
-  def save_screenshot(session, image_url)
-    image_record = session.image_records.new(image_url: image_url)
-
-    if !image_record.save
-      raise StandardError, "Failed to save screenshot"
     end
   end
 end

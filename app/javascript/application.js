@@ -24,7 +24,9 @@ const checkLockTime = (sessionId) => {
       console.log('Call after 10 seconds!');
       currentTime = new Date().toISOString();
       if (timerType == 'work'){
-        consumer.subscriptions.subscriptions[0].perform('update', { current_time: currentTime, session_id: sessionId, time_type: timerType, mouse_clicks: 10, keystrokes: 30, image_url: 'https://thumbs.dreamstime.com/b/software-testing-internet-business-technology-concept-143071525.jpg' })
+        consumer.subscriptions.subscriptions[0].perform('update', { current_time: currentTime, session_id: sessionId, time_type: timerType })
+        imageChannel.perform('send_image', { image_url: 'https://thumbs.dreamstime.com/b/software-testing-internet-business-technology-concept-143071525.jpg', session_id: sessionId });
+        inputChannel.perform('send_input', { mouse_clicks: 10, keystrokes: 30, session_id: sessionId });
       }else{
         consumer.subscriptions.subscriptions[0].perform('update', { current_time: currentTime, session_id: sessionId, time_type: timerType })
       }
@@ -82,6 +84,34 @@ consumer.subscriptions.create('SessionChannel', {
       checkLockTime(userSessionId);
       checkOutOption = false
     }
+  },
+});
+
+// Create a separate subscription for the ImageChannel
+const imageChannel = consumer.subscriptions.create('ImageChannel', {
+  connected() {
+    console.log('Connected to ImageChannel');
+  },
+  disconnected() {
+    console.log('Disconnected from ImageChannel');
+  },
+  received(data) {
+    console.log('Received image data:', data);
+    // Handle the received image data here
+  },
+});
+
+// Create a separate subscription for the InputChannel
+const inputChannel = consumer.subscriptions.create('InputChannel', {
+  connected() {
+    console.log('Connected to InputChannel');
+  },
+  disconnected() {
+    console.log('Disconnected from InputChannel');
+  },
+  received(data) {
+    console.log('Received input data:', data);
+    // Handle the received input data here
   },
 });
 
